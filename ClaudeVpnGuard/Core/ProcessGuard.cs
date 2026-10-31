@@ -92,8 +92,11 @@ public sealed class ProcessGuard : IDisposable
 
         if (allowRunning)
         {
-            foreach (var info in processes.Where(p => p.Suspended))
-                Resume(info.Id);
+            // Always force-resume every Claude process. Tracking alone is not enough:
+            // another Guard instance (or a prior run) may have suspended them without
+            // this process knowing, leaving Claude frozen forever.
+            foreach (var info in processes)
+                Resume(info.Id, force: true);
             return;
         }
 
@@ -115,7 +118,7 @@ public sealed class ProcessGuard : IDisposable
     public void ResumeAll(string reason)
     {
         foreach (var info in ListClaudeProcesses())
-            Resume(info.Id, reason);
+            Resume(info.Id, reason, force: true);
     }
 
     private void OnProcessStarted(object sender, EventArrivedEventArgs e)
@@ -175,11 +178,12 @@ public sealed class ProcessGuard : IDisposable
         }
     }
 
-    private void Resume(int pid, string? reason = null)
+    private void Resume(int pid, string? reason = null, bool force = false)
     {
         lock (_gate)
         {
-            if (!_suspended.Contains(pid))
+            var tracked = _suspended.Contains(pid);
+            if (!force && !tracked)
                 return;
 
             var handle = NativeMethods.OpenProcess(NativeMethods.PROCESS_SUSPEND_RESUME, false, pid);
@@ -191,9 +195,16 @@ public sealed class ProcessGuard : IDisposable
 
             try
             {
-                NativeMethods.NtResumeProcess(handle);
-                _suspended.Remove(pid);
-                _journal.Add("resume", $"Resumed PID {pid}" + (reason is null ? "" : $" — {reason}"));
+                // NtSuspendProcess nests: each suspend needs a matching resume.
+                // Duplicate Guard instances can stack several counts on one PID.
+                for (var i = 0; i < 4; i++)
+                    NativeMethods.NtResumeProcess(handle);
+
+                // Journal only when we knew about the suspend — force-unwinding every
+                // poll would otherwise spam events.jsonl.
+                var wasTracked = _suspended.Remove(pid);
+                if (wasTracked)
+                    _journal.Add("resume", $"Resumed PID {pid}" + (reason is null ? "" : $" — {reason}"));
             }
             finally
             {

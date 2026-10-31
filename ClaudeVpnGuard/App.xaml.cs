@@ -8,6 +8,7 @@ namespace ClaudeVpnGuard;
 
 public partial class App : Application
 {
+    private static Mutex? _singleInstance;
     private NotifyIcon? _tray;
     private GuardService? _guard;
     private MainWindow? _window;
@@ -17,6 +18,18 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        _singleInstance = new Mutex(true, @"Local\ClaudeVpnGuard.SingleInstance", out var createdNew);
+        if (!createdNew)
+        {
+            System.Windows.MessageBox.Show(
+                "Claude Code Guardian уже запущен.\nОткройте его из трея — второй экземпляр не нужен (он замораживает Claude повторно).",
+                "Claude Code Guardian",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            Shutdown();
+            return;
+        }
 
         var journal = new EventJournal();
         var notifier = new Notifier();
@@ -106,6 +119,9 @@ public partial class App : Application
             _tray = null;
         }
         _currentIcon?.Dispose();
+        try { _singleInstance?.ReleaseMutex(); } catch { /* ignore */ }
+        _singleInstance?.Dispose();
+        _singleInstance = null;
         Shutdown();
     }
 
