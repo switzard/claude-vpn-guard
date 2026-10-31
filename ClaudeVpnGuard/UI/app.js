@@ -285,6 +285,7 @@
 
     $("#sysTitle").textContent = data.systemTitle || "Система активна";
     $("#sysSub").textContent = data.systemSub || "Все защиты работают";
+    if ($("#globalStatus")) $("#globalStatus").textContent = data.globalStatus || I18n.t("active");
 
     $("#protectionTitle").textContent = data.protectionTitle || "Защита включена";
     $("#protectionSub").textContent = data.protectionSub || "";

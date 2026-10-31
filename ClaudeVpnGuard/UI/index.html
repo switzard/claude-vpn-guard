@@ -12,15 +12,22 @@
 <body>
   <div class="shell">
     <div class="titlebar chrome-mac" id="titlebar">
-      <div class="traffic" id="trafficMac">
-        <button type="button" class="tl close" id="winClose" title="Close" aria-label="Close"></button>
-        <button type="button" class="tl min" id="winMin" title="Minimize" aria-label="Minimize"></button>
-      </div>
       <div class="titlebar-drag" id="winDrag"></div>
       <div class="titlebar-right">
-        <div class="win-caption" id="trafficWin">
-          <button type="button" class="wc min" id="winMin2" title="Minimize">─</button>
-          <button type="button" class="wc close" id="winClose2" title="Close">×</button>
+        <div class="pill-active titlebar-pill">
+          <span class="dot"></span>
+          <span class="pill-ico" data-icon="zap"></span>
+          <span id="globalStatus" data-i18n="active">Активен</span>
+        </div>
+        <div class="window-controls" id="windowControls">
+          <div class="traffic" id="trafficMac">
+            <button type="button" class="tl min" id="winMin" title="Minimize" aria-label="Minimize"></button>
+            <button type="button" class="tl close" id="winClose" title="Close" aria-label="Close"></button>
+          </div>
+          <div class="win-caption" id="trafficWin">
+            <button type="button" class="wc min" id="winMin2" title="Minimize">─</button>
+            <button type="button" class="wc close" id="winClose2" title="Close">×</button>
+          </div>
         </div>
       </div>
     </div>
