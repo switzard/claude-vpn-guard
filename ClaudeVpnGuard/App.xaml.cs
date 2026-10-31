@@ -82,7 +82,15 @@ public partial class App : Application
         }
 
         _window.Show();
-        _window.WindowState = WindowState.Normal;
+        if (_window.WindowState == WindowState.Minimized)
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(_window).Handle;
+            ClaudeVpnGuard.Core.NativeMethods.RestoreNative(hwnd);
+        }
+        else
+        {
+            _window.WindowState = WindowState.Normal;
+        }
         _window.Activate();
     }
 

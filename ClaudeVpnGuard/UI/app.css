@@ -130,32 +130,14 @@ html, body {
 .titlebar.chrome-mac .traffic { display: inline-flex; }
 .titlebar.chrome-win .win-caption { display: inline-flex; }
 
-/* window open / close */
-.shell { opacity: 0; transform: scale(.97) translateY(8px); }
+/* Content reveal only — minimize/restore use native Windows DWM (like Cursor) */
+.shell { opacity: 1; }
 .shell.boot-in {
-  animation: shellIn .38s cubic-bezier(.22,.8,.24,1) forwards;
-}
-.shell.boot-out {
-  animation: shellOut .28s ease forwards;
-  pointer-events: none;
-}
-.shell.boot-min {
-  animation: shellMin .22s cubic-bezier(.33,.0,.2,1) forwards;
-  pointer-events: none;
-  transform-origin: center bottom;
-  will-change: transform, opacity;
+  animation: shellIn .28s cubic-bezier(.22,.8,.24,1) both;
 }
 @keyframes shellIn {
-  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
-}
-@keyframes shellOut {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(6px) scale(.985); }
-}
-@keyframes shellMin {
-  0% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(18px) scale(.94); }
 }
 
 .app {

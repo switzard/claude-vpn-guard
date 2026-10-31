@@ -208,44 +208,7 @@
     }
   }
 
-  function resetShellMotion(shell) {
-    if (!shell) return;
-    shell.classList.remove("boot-in", "boot-out", "boot-min");
-    shell.style.animation = "none";
-    // force reflow so the next animation class restarts cleanly
-    void shell.offsetWidth;
-    shell.style.animation = "";
-    shell.style.opacity = "";
-    shell.style.transform = "";
-    shell.style.filter = "";
-  }
-
-  function closeAppAnimated() {
-    const shell = $(".shell");
-    if (!shell || shell.classList.contains("boot-out") || shell.classList.contains("boot-min")) {
-      post("windowClose");
-      return;
-    }
-    resetShellMotion(shell);
-    shell.classList.add("boot-out");
-    setTimeout(() => post("windowClose"), 260);
-  }
-
-  function minimizeAppAnimated() {
-    const shell = $(".shell");
-    if (!shell || shell.classList.contains("boot-min") || shell.classList.contains("boot-out")) {
-      post("windowMinimize");
-      return;
-    }
-    // CSS preview only — host does the real minimize without a second opacity fight
-    resetShellMotion(shell);
-    shell.classList.add("boot-min");
-    setTimeout(() => {
-      post("windowMinimize");
-      resetShellMotion(shell);
-      shell.classList.add("boot-in");
-    }, 200);
-  }
+  // Window motion is native DWM (same path Cursor uses on Windows) — no CSS fake minimize.
 
   function autoSave() {
     post("save", collectSave());
@@ -502,15 +465,15 @@
   $("#procSearch")?.addEventListener("input", renderProcesses);
 
   // window chrome
-  $("#winClose")?.addEventListener("click", closeAppAnimated);
-  $("#winClose2")?.addEventListener("click", closeAppAnimated);
-  $("#winMin")?.addEventListener("click", minimizeAppAnimated);
-  $("#winMin2")?.addEventListener("click", minimizeAppAnimated);
+  $("#winClose")?.addEventListener("click", () => post("windowClose"));
+  $("#winClose2")?.addEventListener("click", () => post("windowClose"));
+  $("#winMin")?.addEventListener("click", () => post("windowMinimize"));
+  $("#winMin2")?.addEventListener("click", () => post("windowMinimize"));
   $("#winDrag")?.addEventListener("mousedown", e => {
     if (e.button === 0) post("windowDrag");
   });
 
-  // boot animation
+  // Soft content reveal only (window itself uses OS/DWM transitions)
   requestAnimationFrame(() => $(".shell")?.classList.add("boot-in"));
 
   // toggles

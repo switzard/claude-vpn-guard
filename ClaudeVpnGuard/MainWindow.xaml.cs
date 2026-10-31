@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media.Animation;
 using ClaudeVpnGuard.Core;
 using ClaudeVpnGuard.Hygiene;
 using Microsoft.Web.WebView2.Core;
@@ -19,52 +18,21 @@ public partial class MainWindow : Window
     private string? _lastToastKey;
     private bool _ready;
     private IntPtr _hwnd;
-    private WindowState _lastWindowState = WindowState.Normal;
 
     public MainWindow(GuardService guard)
     {
         InitializeComponent();
         _guard = guard;
-        Loaded += async (_, _) =>
-        {
-            await InitWebAsync();
-            FadeIn();
-        };
-        StateChanged += OnWindowStateChanged;
+        Loaded += async (_, _) => await InitWebAsync();
         _guard.StateChanged += OnGuardChanged;
-    }
-
-    private void FadeIn()
-    {
-        // Clear any stuck storyboard, then soft restore
-        BeginAnimation(OpacityProperty, null);
-        if (Opacity >= 0.99) Opacity = 0.92;
-        var from = Opacity;
-        var anim = new DoubleAnimation(from, 1, TimeSpan.FromMilliseconds(220))
-        {
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
-            FillBehavior = FillBehavior.Stop
-        };
-        anim.Completed += (_, _) =>
-        {
-            BeginAnimation(OpacityProperty, null);
-            Opacity = 1;
-        };
-        BeginAnimation(OpacityProperty, anim);
-    }
-
-    private void OnWindowStateChanged(object? sender, EventArgs e)
-    {
-        // Only animate restore from tray/taskbar minimize — not every Normal churn
-        if (_lastWindowState == WindowState.Minimized && WindowState == WindowState.Normal)
-            FadeIn();
-        _lastWindowState = WindowState;
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         _hwnd = new WindowInteropHelper(this).Handle;
         NativeMethods.EnableRoundedCorners(_hwnd);
+        // Same DWM minimize/restore family Cursor uses on Windows
+        NativeMethods.EnableNativeWindowTransitions(_hwnd);
     }
 
     private async Task InitWebAsync()
@@ -129,10 +97,9 @@ public partial class MainWindow : Window
                     PickSound();
                     break;
                 case "windowMinimize":
-                    // UI already played the minimize motion; host just docks to taskbar
-                    BeginAnimation(OpacityProperty, null);
-                    Opacity = 1;
-                    WindowState = WindowState.Minimized;
+                    if (_hwnd == IntPtr.Zero)
+                        _hwnd = new WindowInteropHelper(this).Handle;
+                    NativeMethods.MinimizeNative(_hwnd);
                     break;
                 case "windowClose":
                     Close();
