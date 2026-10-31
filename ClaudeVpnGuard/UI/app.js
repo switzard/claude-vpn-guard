@@ -208,15 +208,27 @@
     }
   }
 
+  function resetShellMotion(shell) {
+    if (!shell) return;
+    shell.classList.remove("boot-in", "boot-out", "boot-min");
+    shell.style.animation = "none";
+    // force reflow so the next animation class restarts cleanly
+    void shell.offsetWidth;
+    shell.style.animation = "";
+    shell.style.opacity = "";
+    shell.style.transform = "";
+    shell.style.filter = "";
+  }
+
   function closeAppAnimated() {
     const shell = $(".shell");
     if (!shell || shell.classList.contains("boot-out") || shell.classList.contains("boot-min")) {
       post("windowClose");
       return;
     }
-    shell.classList.remove("boot-in", "boot-min");
+    resetShellMotion(shell);
     shell.classList.add("boot-out");
-    setTimeout(() => post("windowClose"), 280);
+    setTimeout(() => post("windowClose"), 260);
   }
 
   function minimizeAppAnimated() {
@@ -225,14 +237,14 @@
       post("windowMinimize");
       return;
     }
-    shell.classList.remove("boot-in", "boot-out");
+    // CSS preview only — host does the real minimize without a second opacity fight
+    resetShellMotion(shell);
     shell.classList.add("boot-min");
     setTimeout(() => {
       post("windowMinimize");
-      // reset shell for next restore
-      shell.classList.remove("boot-min");
+      resetShellMotion(shell);
       shell.classList.add("boot-in");
-    }, 240);
+    }, 200);
   }
 
   function autoSave() {

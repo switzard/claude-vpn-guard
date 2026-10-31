@@ -19,7 +19,7 @@ public partial class MainWindow : Window
     private string? _lastToastKey;
     private bool _ready;
     private IntPtr _hwnd;
-    private bool _minimizeAnimating;
+    private WindowState _lastWindowState = WindowState.Normal;
 
     public MainWindow(GuardService guard)
     {
@@ -36,38 +36,29 @@ public partial class MainWindow : Window
 
     private void FadeIn()
     {
+        // Clear any stuck storyboard, then soft restore
         BeginAnimation(OpacityProperty, null);
-        Opacity = 0;
-        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
+        if (Opacity >= 0.99) Opacity = 0.92;
+        var from = Opacity;
+        var anim = new DoubleAnimation(from, 1, TimeSpan.FromMilliseconds(220))
         {
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+            FillBehavior = FillBehavior.Stop
+        };
+        anim.Completed += (_, _) =>
+        {
+            BeginAnimation(OpacityProperty, null);
+            Opacity = 1;
         };
         BeginAnimation(OpacityProperty, anim);
     }
 
     private void OnWindowStateChanged(object? sender, EventArgs e)
     {
-        if (WindowState == WindowState.Normal && !_minimizeAnimating)
+        // Only animate restore from tray/taskbar minimize — not every Normal churn
+        if (_lastWindowState == WindowState.Minimized && WindowState == WindowState.Normal)
             FadeIn();
-    }
-
-    private void MinimizeAnimated()
-    {
-        if (_minimizeAnimating) return;
-        _minimizeAnimating = true;
-        BeginAnimation(OpacityProperty, null);
-        var anim = new DoubleAnimation(Opacity, 0, TimeSpan.FromMilliseconds(220))
-        {
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
-        };
-        anim.Completed += (_, _) =>
-        {
-            WindowState = WindowState.Minimized;
-            BeginAnimation(OpacityProperty, null);
-            Opacity = 1;
-            _minimizeAnimating = false;
-        };
-        BeginAnimation(OpacityProperty, anim);
+        _lastWindowState = WindowState;
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -138,7 +129,10 @@ public partial class MainWindow : Window
                     PickSound();
                     break;
                 case "windowMinimize":
-                    MinimizeAnimated();
+                    // UI already played the minimize motion; host just docks to taskbar
+                    BeginAnimation(OpacityProperty, null);
+                    Opacity = 1;
+                    WindowState = WindowState.Minimized;
                     break;
                 case "windowClose":
                     Close();
