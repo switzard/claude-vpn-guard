@@ -21,6 +21,8 @@ public sealed class ProcessGuard : IDisposable
     private ManagementEventWatcher? _watcher;
     private bool _allowRunning = false;
 
+    public event Action<int, string>? Blocked;
+
     public ProcessGuard(EventJournal journal)
     {
         _journal = journal;
@@ -127,13 +129,13 @@ public sealed class ProcessGuard : IDisposable
             if (_allowRunning)
                 return;
 
-            // Give the process a moment to initialize handles
             Thread.Sleep(120);
-            Suspend(pid, "blocked: VPN/location not ready");
+            Suspend(pid, "VPN/локация не готовы");
+            Blocked?.Invoke(pid, "VPN не активен или локация неверна");
         }
         catch (Exception ex)
         {
-            _journal.Add("error", $"Start watch handler failed: {ex.Message}");
+            _journal.Add("error", $"Ошибка watch: {ex.Message}");
         }
     }
 

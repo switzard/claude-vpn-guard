@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude Code Guardian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div class="shell">
+    <div class="titlebar chrome-mac" id="titlebar">
+      <div class="traffic" id="trafficMac">
+        <button type="button" class="tl close" id="winClose" title="Close" aria-label="Close"></button>
+        <button type="button" class="tl min" id="winMin" title="Minimize" aria-label="Minimize"></button>
+        <button type="button" class="tl style" id="winStyle" title="Window style: Mac / Windows" aria-label="Window style"></button>
+      </div>
+      <div class="titlebar-drag" id="winDrag"></div>
+      <div class="titlebar-right">
+        <div class="pill-active titlebar-pill"><span class="dot"></span><span class="pill-ico" data-icon="zap"></span><span id="globalStatus" data-i18n="active">Активен</span></div>
+        <div class="win-caption" id="trafficWin">
+          <button type="button" class="wc style" id="winStyle2" title="Window style">⧉</button>
+          <button type="button" class="wc min" id="winMin2" title="Minimize">─</button>
+          <button type="button" class="wc close" id="winClose2" title="Close">×</button>
+        </div>
+      </div>
+      <div class="chrome-menu" id="chromeMenu" hidden>
+        <button type="button" data-chrome="mac">macOS ●●●</button>
+        <button type="button" data-chrome="win">Windows − □ ×</button>
+      </div>
+    </div>
+
+    <div class="app">
+      <aside class="sidebar">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none">
+            <defs>
+              <linearGradient id="sg" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#60A5FA"/><stop offset="1" stop-color="#2563EB"/>
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <path filter="url(#glow)" d="M32 6L50 14V30C50 42 41.5 51.5 32 56C22.5 51.5 14 42 14 30V14L32 6Z" fill="url(#sg)"/>
+            <rect x="26" y="26" width="12" height="14" rx="2.5" fill="#0B1224"/>
+            <path d="M29 26V23.5C29 21.57 30.57 20 32.5 20C34.43 20 36 21.57 36 23.5V26" stroke="#DBEAFE" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="32.5" cy="33" r="1.8" fill="#60A5FA"/>
+          </svg>
+        </div>
+        <nav class="nav">
+          <button class="nav-item active" data-page="home"><span class="nav-ico" data-icon="home"></span><span data-i18n="home">Главная</span></button>
+          <button class="nav-item" data-page="monitoring"><span class="nav-ico" data-icon="activity"></span><span data-i18n="monitoring">Мониторинг</span></button>
+          <button class="nav-item" data-page="vpn"><span class="nav-ico" data-icon="wifi"></span><span data-i18n="vpn">VPN</span></button>
+          <button class="nav-item" data-page="security"><span class="nav-ico" data-icon="shieldCheck"></span><span data-i18n="security">Безопасность</span></button>
+          <button class="nav-item" data-page="journal"><span class="nav-ico" data-icon="fileText"></span><span data-i18n="journal">Журнал</span></button>
+          <button class="nav-item" data-page="settings"><span class="nav-ico" data-icon="settings"></span><span data-i18n="settings">Настройки</span></button>
+          <button class="nav-item" data-page="about"><span class="nav-ico" data-icon="info"></span><span data-i18n="about">О программе</span></button>
+        </nav>
+        <div class="sys-card">
+          <div class="badge" data-icon="check"></div>
+          <div><strong id="sysTitle">Система активна</strong><span id="sysSub">Все защиты работают</span></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h1 data-i18n="title">Claude Code Guardian</h1>
+            <p data-i18n="subtitle">Полный контроль и защита вашего аккаунта</p>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <section class="page active" id="page-home">
+            <div class="grid-3">
+              <article class="card green">
+                <div class="card-head"><div class="ico green" data-icon="shieldCheck"></div></div>
+                <h2 class="green" id="protectionTitle">Защита включена</h2>
+                <p class="sub" id="protectionSub">Все системы работают корректно</p>
+                <svg class="wave" id="waveSvg" viewBox="0 0 320 60" preserveAspectRatio="none">
+                  <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2FE07A" stop-opacity=".35"/><stop offset="1" stop-color="#2FE07A" stop-opacity="0"/></linearGradient></defs>
+                  <path id="waveFill" fill="url(#wg)" d=""/>
+                  <path id="wavePath" fill="none" stroke="#2FE07A" stroke-width="2.4" d=""/>
+                </svg>
+                <div class="stats-row">
+                  <div class="stat-mini"><label>Uptime</label><b id="uptime">00:00:00</b></div>
+                  <div class="stat-mini"><label>Blocked</label><b id="blocked">0</b></div>
+                  <div class="stat-mini"><label>VPN</label><b class="ok" id="vpnMini"><i></i><span>Активен</span></b></div>
+                </div>
+              </article>
+
+              <article class="card blue">
+                <div class="card-head"><div class="ico blue" data-icon="wifi"></div></div>
+                <h2 class="blue" id="vpnTitle">VPN подключен</h2>
+                <p class="sub" id="vpnSub">Ваше соединение защищено</p>
+                <div class="vpn-row">
+                  <div class="flag" id="flag"></div>
+                  <div class="vpn-meta"><div class="country" id="vpnCountry">—</div><div class="ip" id="vpnIp">—</div></div>
+                  <div class="latency" id="vpnLatency">—</div>
+                </div>
+                <button class="btn btn-ghost" id="btnCheckVpn" data-i18n="checkVpn">Проверить VPN</button>
+              </article>
+
+              <article class="card red" id="claudeCard">
+                <div class="card-head"><div class="ico orange" data-icon="spark"></div></div>
+                <div class="claude-title"><span class="name">Claude Code:</span><span class="blocked" id="claudeStatus"><span class="status-ico" data-icon="ban"></span> —</span></div>
+                <p class="sub" id="claudeSub">—</p>
+                <button class="btn btn-danger" id="btnAllow" style="margin-top:16px"><span data-icon="play" class="btn-ico"></span> <span data-i18n="allow">Разрешить запуск</span></button>
+              </article>
+            </div>
+
+            <div class="grid-mid">
+              <article class="card">
+                <div class="card-head">
+                  <h3 class="panel-title"><span class="ico blue" data-icon="activity"></span><span data-i18n="events">Активность и события</span></h3>
+                  <div class="panel-tools">
+                    <div class="glass-select" id="eventFilterWrap" data-value="Все">
+                      <button type="button" class="glass-select-btn" id="eventFilterBtn"><span data-i18n="allEvents">Все события</span></button>
+                      <div class="glass-select-menu" hidden>
+                        <button type="button" data-val="Все" data-i18n="allEvents">Все события</button>
+                        <button type="button" data-val="vpn">VPN</button>
+                        <button type="button" data-val="launch">Launch</button>
+                        <button type="button" data-val="geo">Geo</button>
+                        <button type="button" data-val="audit">Audit</button>
+                        <button type="button" data-val="remind">Remind</button>
+                        <button type="button" data-val="error">Error</button>
+                      </div>
+                    </div>
+                    <button class="btn-sm" id="btnClear" data-i18n="clear">Очистить</button>
+                  </div>
+                </div>
+                <div class="events" id="events"></div>
+              </article>
+              <article class="card">
+                <div class="card-head">
+                  <h3 class="panel-title"><span class="ico chart" data-icon="chart"></span><span data-i18n="stats">Статистика</span></h3>
+                  <span class="tag mid">12h</span>
+                </div>
+                <div class="stat-big">
+                  <div class="row"><span class="label">Attempts</span><span class="delta up" id="attemptsDelta"></span></div>
+                  <div class="num" id="attempts">0</div>
+                  <div class="row" style="margin-top:6px"><span class="label">Blocked</span><span class="delta down" id="blockedDelta"></span></div>
+                  <div class="num" id="blockedBig">0</div>
+                </div>
+                <svg class="linechart" viewBox="0 0 280 90" preserveAspectRatio="none">
+                  <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3B82F6" stop-opacity=".35"/><stop offset="1" stop-color="#3B82F6" stop-opacity="0"/></linearGradient></defs>
+                  <path id="lineFill" fill="url(#lg)" d=""/><path id="linePath" fill="none" stroke="#3B82F6" stroke-width="2.6" d=""/><g id="lineDots"></g>
+                </svg>
+              </article>
+            </div>
+
+            <div class="grid-bottom">
+              <article class="card">
+                <div class="card-head">
+                  <h3 class="panel-title"><span class="ico red" data-icon="alert"></span><span data-i18n="risks">Риски и угрозы</span></h3>
+                  <span class="tag" id="riskTag">—</span>
+                </div>
+                <div class="risk-body">
+                  <div class="ring-wrap tone-low">
+                    <svg viewBox="0 0 100 100" class="ring-svg">
+                      <defs>
+                        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stop-color="#86efac"/>
+                          <stop offset="55%" stop-color="#4ade80"/>
+                          <stop offset="100%" stop-color="#22c55e"/>
+                        </linearGradient>
+                      </defs>
+                      <circle class="ring-track" cx="50" cy="50" r="36" fill="none" stroke-width="5"/>
+                      <circle id="ratingRing" class="ring-value" cx="50" cy="50" r="36" fill="none" stroke="url(#ringGrad)" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="10"/>
+                    </svg>
+                    <div class="pct" id="ratingPct">—</div>
+                  </div>
+                  <div class="risk-copy"><strong data-i18n="ratingApprox">Рейтинг аккаунта (примерный)</strong><span data-i18n="ratingHint">На основе VPN, локации и аудита</span></div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="card-head"><h3 class="panel-title"><span class="ico yellow" data-icon="bulb"></span><span data-i18n="tips">Рекомендации</span></h3></div>
+                <ul class="checklist" id="recommendations"></ul>
+                <button class="btn btn-ghost" id="btnMoreProtect" data-i18n="moreProtect">Подробнее о защите →</button>
+              </article>
+              <article class="card blue">
+                <div class="card-head"><h3 class="panel-title"><span class="ico blue" data-icon="clock"></span><span data-i18n="lastCheck">Последняя проверка</span></h3></div>
+                <div class="audit-row">
+                  <div class="audit-copy">
+                    <div class="audit-time" id="auditTime">—</div>
+                    <div class="audit-ok" id="auditOk">—</div>
+                    <button class="btn btn-ghost" id="btnAudit" style="margin-top:12px;width:auto;padding-inline:14px"><span data-icon="play" class="btn-ico"></span> <span data-i18n="runAudit">Запустить аудит</span></button>
+                  </div>
+                  <div class="shield-glow"><svg viewBox="0 0 64 64" fill="none"><defs><linearGradient id="sg2" x1="12" y1="4" x2="52" y2="60"><stop stop-color="#60A5FA"/><stop offset="1" stop-color="#2563EB"/></linearGradient></defs><path d="M32 6L50 14V30C50 42 41.5 51.5 32 56C22.5 51.5 14 42 14 30V14L32 6Z" fill="url(#sg2)"/><rect x="26" y="26" width="12" height="14" rx="2.5" fill="#0B1224"/><path d="M29 26V23.5C29 21.57 30.57 20 32.5 20C34.43 20 36 21.57 36 23.5V26" stroke="#DBEAFE" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="page panel-page" id="page-monitoring">
+            <article class="card">
+              <h3 class="panel-title"><span class="ico blue" data-icon="activity"></span><span data-i18n="monitoring">Мониторинг</span></h3>
+              <div class="mon-tabs" id="monTabs">
+                <button class="pill active" type="button" data-mon="proc" data-i18n="processes">Процессы</button>
+                <button class="pill" type="button" data-mon="events" data-i18n="monEvents">События</button>
+                <button class="pill" type="button" data-mon="net" data-i18n="network">Сеть</button>
+              </div>
+              <div class="mon-pane active" id="mon-proc">
+                <div class="search-wrap"><span class="search-ico" data-icon="search"></span><input class="search glass-input" id="procSearch" data-i18n-placeholder="searchProc" placeholder="Поиск по процессам..." /></div>
+                <table class="table"><thead><tr><th>Process</th><th>Status</th><th>Path</th></tr></thead><tbody id="procBody"></tbody></table>
+              </div>
+              <div class="mon-pane" id="mon-events">
+                <div class="events" id="monEventsList" style="max-height:420px"></div>
+              </div>
+              <div class="mon-pane" id="mon-net">
+                <table class="table"><thead><tr><th>Metric</th><th>Value</th><th>OK</th></tr></thead><tbody id="netBody"></tbody></table>
+              </div>
+            </article>
+          </section>
+
+          <section class="page panel-page" id="page-vpn">
+            <article class="card">
+              <h3 class="panel-title"><span class="ico blue" data-icon="wifi"></span>VPN</h3>
+              <p class="sub" style="margin-top:10px" id="vpnPageSub" data-i18n="providers">Выберите активные провайдеры туннелей</p>
+              <div id="providers"></div>
+              <button class="btn btn-blue" id="btnCheckVpn2" style="margin-top:14px;width:auto" data-i18n="checkVpn">Проверить VPN</button>
+            </article>
+          </section>
+
+          <section class="page panel-page" id="page-security">
+            <article class="card"><h3 class="panel-title"><span class="ico green" data-icon="shieldCheck"></span><span data-i18n="security">Безопасность</span></h3><div id="hygiene"></div></article>
+          </section>
+
+          <section class="page panel-page" id="page-journal">
+            <article class="card">
+              <div class="card-head">
+                <h3 class="panel-title"><span class="ico blue" data-icon="fileText"></span><span data-i18n="journal">Журнал</span></h3>
+                <button class="btn-sm" id="btnExport"><span data-icon="download" class="btn-ico"></span> <span data-i18n="export">Экспорт журнала</span></button>
+              </div>
+              <div class="events" id="eventsFull" style="max-height:none"></div>
+            </article>
+          </section>
+
+          <section class="page panel-page" id="page-settings">
+            <div class="settings-layout">
+              <aside class="card settings-nav">
+                <button class="pill active" type="button" data-settings="general" data-i18n="general">Общие</button>
+                <button class="pill" type="button" data-page-jump="vpn">VPN</button>
+                <button class="pill" type="button" data-page-jump="security" data-i18n="security">Безопасность</button>
+                <button class="pill" type="button" data-page-jump="about" data-i18n="about">О программе</button>
+              </aside>
+              <article class="card">
+                <h3 class="panel-title" data-i18n="settings">Настройки</h3>
+                <div class="setting-row">
+                  <div><strong data-i18n="autostart">Автозапуск</strong><span data-i18n="autostartHint">Запускать вместе с Windows</span></div>
+                  <button type="button" class="toggle" id="autostartToggle" aria-pressed="false"></button>
+                </div>
+                <div class="setting-row">
+                  <div><strong data-i18n="blockVpn">Блокировать без VPN</strong><span data-i18n="blockVpnHint">Запретить Claude без туннеля</span></div>
+                  <button type="button" class="toggle on" id="blockWithoutVpn" aria-pressed="true"></button>
+                </div>
+                <div class="setting-row">
+                  <div><strong data-i18n="suspend">Пауза при обрыве VPN</strong><span data-i18n="suspendHint">Приостанавливать процессы Claude</span></div>
+                  <button type="button" class="toggle on" id="suspendOnDrop" aria-pressed="true"></button>
+                </div>
+                <div class="setting-row">
+                  <div><strong data-i18n="sound">Звук уведомлений</strong><span data-i18n="soundHint">Системные balloon + звук</span></div>
+                  <button type="button" class="toggle on" id="soundToggle" aria-pressed="true"></button>
+                </div>
+                <div class="form-row" style="margin-top:14px">
+                  <label data-i18n="pickSound">Выбрать WAV…</label>
+                  <div class="sound-row">
+                    <button class="btn btn-ghost" id="btnPickSound" style="width:auto" data-i18n="pickSound">Выбрать WAV…</button>
+                    <span id="soundPath" class="sound-path">default</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label data-i18n="language">Язык интерфейса</label>
+                  <div class="glass-select" id="langWrap" data-value="ru">
+                    <button type="button" class="glass-select-btn" id="langBtn">Русский</button>
+                    <div class="glass-select-menu" hidden>
+                      <button type="button" data-val="ru">Русский</button>
+                      <button type="button" data-val="en">English</button>
+                      <button type="button" data-val="zh">中文</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label data-i18n="targetLoc">Целевая локация</label>
+                  <div class="glass-select" id="countryWrap" data-value="NL">
+                    <button type="button" class="glass-select-btn" id="countryBtn">NL — Netherlands</button>
+                    <div class="glass-select-menu" id="countryMenu" hidden></div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label data-i18n="workMode">Режим работы</label>
+                  <div class="glass-select" id="modeWrap" data-value="strict">
+                    <button type="button" class="glass-select-btn" id="modeBtn" data-i18n="strict">Строгий</button>
+                    <div class="glass-select-menu" hidden>
+                      <button type="button" data-val="strict" data-i18n="strict">Строгий</button>
+                      <button type="button" data-val="soft" data-i18n="soft">Мягкий</button>
+                    </div>
+                  </div>
+                </div>
+                <input type="checkbox" id="strict" hidden checked />
+                <input type="checkbox" id="guardEnabled" hidden checked />
+                <input type="checkbox" id="killMode" hidden />
+                <input type="checkbox" id="autostart" hidden />
+                <input type="checkbox" id="soundEnabled" hidden checked />
+                <button class="btn btn-blue" id="btnSave" style="margin-top:16px;width:auto" data-i18n="save">Сохранить изменения</button>
+              </article>
+            </div>
+          </section>
+
+          <section class="page panel-page" id="page-about">
+            <article class="card">
+              <h3 class="panel-title" data-i18n="about">О программе</h3>
+              <p style="color:var(--muted);margin-top:12px;line-height:1.55" data-i18n="aboutBody">Claude Code Guardian v1.0.0 — локальный VPN-killswitch и location lock для Claude Code / Desktop.</p>
+              <p style="color:var(--muted);line-height:1.55" data-i18n="aboutPolicy">Не обходит KYC, платежи, мультиаккаунты и Usage Policy.</p>
+              <p style="color:var(--green);margin-top:16px">github.com/switzard/claude-vpn-guard</p>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+    <div id="toasts" aria-live="polite"></div>
+  </div>
+  <script src="icons.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

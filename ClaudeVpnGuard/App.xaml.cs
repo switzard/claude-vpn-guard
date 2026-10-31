@@ -1,8 +1,7 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
 using ClaudeVpnGuard.Core;
-using ClaudeVpnGuard.ViewModels;
 using Application = System.Windows.Application;
 
 namespace ClaudeVpnGuard;
@@ -12,7 +11,6 @@ public partial class App : Application
     private NotifyIcon? _tray;
     private GuardService? _guard;
     private MainWindow? _window;
-    private MainViewModel? _vm;
     private Icon? _currentIcon;
     private bool _exiting;
 
@@ -23,16 +21,16 @@ public partial class App : Application
         var journal = new EventJournal();
         var notifier = new Notifier();
         _guard = new GuardService(journal, notifier);
-        _vm = new MainViewModel(_guard);
 
         _tray = new NotifyIcon
         {
-            Text = "Claude VPN Guard",
+            Text = "Claude Code Guardian",
             Visible = true,
             ContextMenuStrip = BuildMenu()
         };
         notifier.Attach(_tray);
-        UpdateTrayIcon(false, false, false);
+        notifier.BindSettings(() => _guard!.Settings);
+        UpdateTrayIcon(true, false, false);
 
         _tray.DoubleClick += (_, _) => ShowMain();
         _guard.StateChanged += OnGuardStateChanged;
@@ -47,7 +45,7 @@ public partial class App : Application
             if (_guard is null || _tray is null) return;
             var vpnUp = _guard.LastTunnelStatus?.State == Tunnel.TunnelState.Up;
             UpdateTrayIcon(_guard.Settings.GuardEnabled, _guard.ClaudeAllowed, vpnUp);
-            _tray.Text = Truncate($"Claude VPN Guard — {_guard.StatusSummary}");
+            _tray.Text = Truncate($"Claude Code Guardian — {_guard.StatusSummary}");
         });
     }
 
@@ -63,19 +61,18 @@ public partial class App : Application
     private ContextMenuStrip BuildMenu()
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Open", null, (_, _) => ShowMain());
-        menu.Items.Add("Save / apply settings", null, (_, _) => _vm?.SaveCommand.Execute(null));
+        menu.Items.Add("Открыть", null, (_, _) => ShowMain());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) => ExitApp());
+        menu.Items.Add("Выход", null, (_, _) => ExitApp());
         return menu;
     }
 
     private void ShowMain()
     {
-        if (_vm is null) return;
+        if (_guard is null) return;
         if (_window is null)
         {
-            _window = new MainWindow(_vm);
+            _window = new MainWindow(_guard);
             _window.Closing += (_, args) =>
             {
                 if (_exiting) return;

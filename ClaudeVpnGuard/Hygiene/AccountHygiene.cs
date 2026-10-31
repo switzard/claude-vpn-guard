@@ -7,34 +7,20 @@ public static class AccountHygiene
 {
     public static IReadOnlyList<HygieneTip> Tips { get; } =
     [
-        new(
-            "Keep one exit country",
-            "Jumping DE→US→NL in one day is a common community-reported trust signal. Lock a single location in Guard.",
-            true),
-        new(
-            "Never let the tunnel drop mid-session",
-            "A brief real-IP flash on an unsupported region is cited as an instant ban trigger. Killswitch covers this.",
-            true),
-        new(
-            "Warm the tunnel before Claude",
-            "Start VPN, confirm target country in Guard, then open Claude Code / Desktop.",
-            true),
-        new(
-            "Avoid multi-device thrash",
-            "Frequent device switching on one account is reported to lower trust. Prefer one primary PC.",
-            false),
-        new(
-            "Don't burn quotas in a burst",
-            "Exhausting daily/weekly limits in a short window is described as bot-like. Pace heavy sessions.",
-            false),
-        new(
-            "Stable email / payment identity",
-            "Fresh throwaway mail and mismatched card country vs VPN exit are reported high-risk. Guard cannot fix payment/KYC issues.",
-            false),
-        new(
-            "Usage Policy still applies",
-            "Jailbreaks, malware requests, and account sharing are hard bans — no VPN tool changes that.",
-            false)
+        new("Используйте VPN при запуске Claude", "Не открывайте Claude Code / Desktop без живого туннеля.", true),
+        new("Избегайте частой смены IP", "Прыжки по странам за день — частый community-сигнал снижения доверия.", true),
+        new("Не используйте только Linux + веб", "По наблюдениям сообществ, мобильные/Desktop клиенты выглядят «спокойнее».", false),
+        new("Не выжигайте лимиты за один сеанс", "Полный burn дневной/недельной квоты за пару часов выглядит ботоподобно.", false),
+        new("Один стабильный ПК", "Постоянные входы с разных устройств режут trust-рейтинг.", false),
+        new("Usage Policy всё ещё действует", "Джейлбрейки и вредоносные промпты — прямые баны. Guard это не обходит.", false)
+    ];
+
+    public static IReadOnlyList<string> Checklist { get; } =
+    [
+        "Используйте VPN при запуске Claude",
+        "Избегайте частой смены IP",
+        "Не используйте Linux (веб-версия)",
+        "Не выжигайте лимиты за один сеанс"
     ];
 }
 

@@ -10,6 +10,11 @@ public sealed class AppSettings
     public bool KillInsteadOfSuspend { get; set; } = false;
     public bool GuardEnabled { get; set; } = true;
     public bool StartWithWindows { get; set; } = true;
+    public string UiLanguage { get; set; } = "ru";
+    /// <summary>mac = traffic lights, win = caption buttons on the right</summary>
+    public string WindowChromeStyle { get; set; } = "mac";
+    public bool SoundEnabled { get; set; } = true;
+    public string CustomSoundPath { get; set; } = "";
     public int PollIntervalMs { get; set; } = 800;
     public int GeoCheckIntervalSeconds { get; set; } = 45;
     public int ReminderCooldownSeconds { get; set; } = 300;

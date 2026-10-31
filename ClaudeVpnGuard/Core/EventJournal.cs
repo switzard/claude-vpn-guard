@@ -45,6 +45,14 @@ public sealed class EventJournal
         }
     }
 
+    public void ClearMemory()
+    {
+        lock (_gate)
+        {
+            _entries.Clear();
+        }
+    }
+
     private void LoadTail()
     {
         try
