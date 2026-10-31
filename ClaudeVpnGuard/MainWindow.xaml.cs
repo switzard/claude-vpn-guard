@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media.Animation;
 using ClaudeVpnGuard.Core;
 using ClaudeVpnGuard.Hygiene;
 using Microsoft.Web.WebView2.Core;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private string? _lastToastKey;
     private bool _ready;
     private IntPtr _hwnd;
+    private bool _minimizeAnimating;
 
     public MainWindow(GuardService guard)
     {
@@ -26,14 +28,46 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             await InitWebAsync();
-            // fade window in with UI boot animation
-            var anim = new System.Windows.Media.Animation.DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(320))
-            {
-                EasingFunction = new System.Windows.Media.Animation.QuadraticEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut }
-            };
-            BeginAnimation(OpacityProperty, anim);
+            FadeIn();
         };
+        StateChanged += OnWindowStateChanged;
         _guard.StateChanged += OnGuardChanged;
+    }
+
+    private void FadeIn()
+    {
+        BeginAnimation(OpacityProperty, null);
+        Opacity = 0;
+        var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
+        {
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        BeginAnimation(OpacityProperty, anim);
+    }
+
+    private void OnWindowStateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Normal && !_minimizeAnimating)
+            FadeIn();
+    }
+
+    private void MinimizeAnimated()
+    {
+        if (_minimizeAnimating) return;
+        _minimizeAnimating = true;
+        BeginAnimation(OpacityProperty, null);
+        var anim = new DoubleAnimation(Opacity, 0, TimeSpan.FromMilliseconds(220))
+        {
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+        };
+        anim.Completed += (_, _) =>
+        {
+            WindowState = WindowState.Minimized;
+            BeginAnimation(OpacityProperty, null);
+            Opacity = 1;
+            _minimizeAnimating = false;
+        };
+        BeginAnimation(OpacityProperty, anim);
     }
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -104,7 +138,7 @@ public partial class MainWindow : Window
                     PickSound();
                     break;
                 case "windowMinimize":
-                    WindowState = WindowState.Minimized;
+                    MinimizeAnimated();
                     break;
                 case "windowClose":
                     Close();

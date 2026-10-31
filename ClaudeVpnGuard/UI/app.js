@@ -210,13 +210,29 @@
 
   function closeAppAnimated() {
     const shell = $(".shell");
-    if (!shell || shell.classList.contains("boot-out")) {
+    if (!shell || shell.classList.contains("boot-out") || shell.classList.contains("boot-min")) {
       post("windowClose");
       return;
     }
-    shell.classList.remove("boot-in");
+    shell.classList.remove("boot-in", "boot-min");
     shell.classList.add("boot-out");
     setTimeout(() => post("windowClose"), 280);
+  }
+
+  function minimizeAppAnimated() {
+    const shell = $(".shell");
+    if (!shell || shell.classList.contains("boot-min") || shell.classList.contains("boot-out")) {
+      post("windowMinimize");
+      return;
+    }
+    shell.classList.remove("boot-in", "boot-out");
+    shell.classList.add("boot-min");
+    setTimeout(() => {
+      post("windowMinimize");
+      // reset shell for next restore
+      shell.classList.remove("boot-min");
+      shell.classList.add("boot-in");
+    }, 240);
   }
 
   function autoSave() {
@@ -476,8 +492,8 @@
   // window chrome
   $("#winClose")?.addEventListener("click", closeAppAnimated);
   $("#winClose2")?.addEventListener("click", closeAppAnimated);
-  $("#winMin")?.addEventListener("click", () => post("windowMinimize"));
-  $("#winMin2")?.addEventListener("click", () => post("windowMinimize"));
+  $("#winMin")?.addEventListener("click", minimizeAppAnimated);
+  $("#winMin2")?.addEventListener("click", minimizeAppAnimated);
   $("#winDrag")?.addEventListener("mousedown", e => {
     if (e.button === 0) post("windowDrag");
   });

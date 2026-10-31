@@ -139,6 +139,11 @@ html, body {
   animation: shellOut .28s ease forwards;
   pointer-events: none;
 }
+.shell.boot-min {
+  animation: shellMin .26s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events: none;
+  transform-origin: 85% 100%;
+}
 @keyframes shellIn {
   from { opacity: 0; transform: scale(.965) translateY(10px); }
   to { opacity: 1; transform: none; }
@@ -146,6 +151,10 @@ html, body {
 @keyframes shellOut {
   from { opacity: 1; transform: none; }
   to { opacity: 0; transform: scale(.97) translateY(6px); }
+}
+@keyframes shellMin {
+  from { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  to { opacity: 0; transform: scale(.82) translateY(28px); filter: blur(2px); }
 }
 
 .app {
