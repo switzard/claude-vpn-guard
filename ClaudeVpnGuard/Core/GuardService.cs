@@ -123,7 +123,8 @@ public sealed class GuardService : IDisposable
         _lastGeo = DateTimeOffset.Now;
         if (geo.Ok)
         {
-            _journal.Add("vpn", $"Проверка VPN: {geo.CountryName} ({geo.CountryCode}) · {geo.Ip} · {sw.ElapsedMilliseconds} мс");
+            var src = string.IsNullOrWhiteSpace(geo.Source) ? "" : $" · {geo.Source}";
+            _journal.Add("vpn", $"Проверка VPN: {geo.CountryName} ({geo.CountryCode}) · {geo.Ip}{src} · {sw.ElapsedMilliseconds} мс");
             _notifier.Balloon("VPN проверен", $"{geo.CountryName} · {geo.Ip} · {sw.ElapsedMilliseconds} мс", ToolTipIcon.Info);
         }
         else

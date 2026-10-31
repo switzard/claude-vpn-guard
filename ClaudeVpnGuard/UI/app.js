@@ -291,7 +291,9 @@
     $("#vpnCountry").textContent = data.vpnCountry || "—";
     $("#vpnIp").textContent = data.vpnIp || "—";
     $("#vpnLatency").textContent = data.vpnLatency || "—";
-    $("#flag").style.background = flagCss(data.countryCode || "NL");
+    $("#flag").style.background = data.countryCode
+      ? flagCss(data.countryCode)
+      : "linear-gradient(135deg,#64748b,#334155)";
 
     const allowed = !!data.claudeAllowed;
     const status = $("#claudeStatus");

@@ -190,7 +190,8 @@ public partial class MainWindow : Window
         var t = _guard.LastTunnelStatus;
         var g = _guard.LastGeo;
         var vpnUp = t?.State == Tunnel.TunnelState.Up;
-        var code = g?.CountryCode ?? _guard.Settings.TargetCountryCode;
+        // Never fall back to target country — that made the flag/label lie about the exit.
+        var code = g is { Ok: true } ? g.CountryCode : null;
 
         object? toast = null;
         var latest = _guard.Journal.Entries.FirstOrDefault();
@@ -232,10 +233,12 @@ public partial class MainWindow : Window
             blockedStarts = _guard.BlockedStarts,
             launchAttempts = Math.Max(_guard.LaunchAttempts, _guard.BlockedStarts),
             vpnUp,
-            vpnCountry = g?.Ok == true ? (g.CountryName ?? code) : "Ожидание geo…",
+            vpnCountry = g is { Ok: true }
+                ? (g.CountryName ?? g.CountryCode ?? "—")
+                : (g?.Error is { Length: > 0 } ? "Geo недоступен" : "Ожидание geo…"),
             vpnIp = g?.Ip ?? "—",
             vpnLatency = _guard.LastLatencyMs is long ms ? $"{ms} ms" : "—",
-            countryCode = code,
+            countryCode = code ?? "",
             claudeAllowed = _guard.ClaudeAllowed,
             claudeSub = _guard.ClaudeAllowed
                 ? (_guard.TemporaryAllowActive
