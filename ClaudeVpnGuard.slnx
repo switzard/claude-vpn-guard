@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ClaudeVpnGuard.Tests/ClaudeVpnGuard.Tests.csproj" />
+  <Project Path="ClaudeVpnGuard/ClaudeVpnGuard.csproj" />
+</Solution>

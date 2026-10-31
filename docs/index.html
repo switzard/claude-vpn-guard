@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude VPN Guard</title>
+  <meta name="description" content="Windows VPN killswitch and location lock for Claude Code and Claude Desktop." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e1114;
+      --panel: #161b20;
+      --text: #e8eef2;
+      --muted: #8b9aa5;
+      --teal: #2ec4b6;
+      --coral: #ff5a5f;
+      --line: rgba(255,255,255,.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(46,196,182,.18), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(255,90,95,.12), transparent 50%),
+        linear-gradient(180deg, #12171c, var(--bg) 40%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { width: min(980px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 80px; }
+    .brand {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      letter-spacing: -.03em;
+      margin: 0 0 12px;
+      line-height: 1.05;
+    }
+    .lead { color: var(--muted); font-size: 1.15rem; max-width: 38rem; line-height: 1.55; margin: 0 0 28px; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+    a.btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 18px; border-radius: 12px; text-decoration: none; font-weight: 600;
+    }
+    .btn-primary { background: var(--teal); color: #0e1114; }
+    .btn-ghost { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .card {
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+    .card h3 { margin: 0 0 8px; font-family: "Space Grotesk", sans-serif; font-size: 1.1rem; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: .95rem; }
+    .status {
+      display: inline-flex; gap: 10px; align-items: center;
+      padding: 8px 12px; border-radius: 999px; background: rgba(46,196,182,.12);
+      color: var(--teal); font-size: .85rem; font-weight: 600; margin-bottom: 22px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); }
+    .clients { margin-top: 36px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; color: var(--muted); font-size: .85rem; }
+    footer { margin-top: 48px; color: var(--muted); font-size: .85rem; line-height: 1.5; border-top: 1px solid var(--line); padding-top: 20px; }
+    code { color: var(--teal); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="status"><span class="dot"></span> Killswitch · Location lock · Tray monitor</div>
+    <h1 class="brand">Claude VPN Guard</h1>
+    <p class="lead">
+      Keep Claude Code and Claude Desktop suspended when the tunnel dies.
+      Pin one exit country. Get reminded before a bad location leaks into a session.
+    </p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/switzard/claude-vpn-guard/releases">Download .exe</a>
+      <a class="btn btn-ghost" href="https://github.com/switzard/claude-vpn-guard">View source</a>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <h3>Tunnel drop → suspend</h3>
+        <p>When Happ or another supported client drops, Guard freezes Claude processes in about a second.</p>
+      </article>
+      <article class="card">
+        <h3>Location reminders</h3>
+        <p>Set NL, DE, US… Strict mode blocks Claude until the public exit country matches.</p>
+      </article>
+      <article class="card">
+        <h3>Multi-client support</h3>
+        <p>Works with the popular Windows proxy/VPN stack used with modern nodes — not one vendor lock-in.</p>
+      </article>
+    </section>
+
+    <section class="clients">
+      <h2 style="font-family:'Space Grotesk',sans-serif;margin:0 0 4px;">Supported clients</h2>
+      <p style="color:var(--muted);margin:0;">Enable only what you use in Settings.</p>
+      <div class="chips">
+        <span class="chip">Happ</span>
+        <span class="chip">Hiddify</span>
+        <span class="chip">v2rayN</span>
+        <span class="chip">Clash Verge Rev</span>
+        <span class="chip">Amnezia</span>
+        <span class="chip">WireGuard</span>
+        <span class="chip">Windscribe</span>
+        <span class="chip">Outline</span>
+        <span class="chip">Nekoray</span>
+      </div>
+    </section>
+
+    <footer>
+      Network hygiene only. No KYC / payment / multi-account bypass features.
+      Audit: <code>AUDIT.md</code> · Research caveats: <code>RESEARCH.md</code>.
+      MIT © switzard
+    </footer>
+  </main>
+</body>
+</html>
