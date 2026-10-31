@@ -59,12 +59,13 @@ html, body {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
-  padding: 0 14px;
+  gap: 10px;
+  padding: 0 12px 0 14px;
   background: rgba(8, 12, 22, 0.72);
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--stroke);
 }
+.titlebar.chrome-mac { grid-template-columns: auto 1fr; }
 .traffic { display: flex; gap: 8px; align-items: center; padding-left: 4px; }
 .tl {
   width: 12px; height: 12px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
@@ -74,32 +75,14 @@ html, body {
 .tl:hover { transform: scale(1.12); filter: brightness(1.08); }
 .tl.close { background: #ff5f57; box-shadow: 0 0 10px rgba(255,95,87,.35); }
 .tl.min { background: #febc2e; box-shadow: 0 0 10px rgba(254,188,46,.28); }
-.tl.style { background: #28c840; box-shadow: 0 0 10px rgba(40,200,64,.28); }
 .traffic { position: relative; }
 .titlebar { position: relative; }
-.chrome-menu {
-  position: fixed; top: 48px; left: 44px; z-index: 9999;
-  min-width: 188px; padding: 8px; border-radius: 14px;
-  background: rgba(10,16,30,.96); backdrop-filter: blur(22px);
-  border: 1px solid rgba(96,165,250,.35);
-  box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04);
-}
-.titlebar.chrome-win .chrome-menu { left: auto; right: 24px; }
-.chrome-menu[hidden] { display: none !important; }
-.chrome-menu button {
-  display: block; width: 100%; text-align: left; border: 0; cursor: pointer;
-  padding: 10px 12px; border-radius: 10px;
-  background: transparent; color: var(--text); font: 560 13px var(--font);
-}
-.chrome-menu button:hover { background: rgba(59,130,246,.22); }
-.chrome-menu button.active { background: rgba(40,200,64,.2); color: #86efac; }
 .titlebar-drag {
   height: 100%; display: flex; align-items: center; justify-content: center;
   cursor: grab;
 }
 .titlebar-drag:active { cursor: grabbing; }
-.titlebar-right { display: flex; align-items: center; gap: 10px; }
-.titlebar-pill { transform: scale(.92); }
+.titlebar-right { display: flex; align-items: center; gap: 0; }
 .win-caption { display: flex; align-items: stretch; height: 42px; margin-right: -14px; }
 .win-caption[hidden] { display: none !important; }
 .wc {
@@ -109,7 +92,6 @@ html, body {
 }
 .wc:hover { background: rgba(255,255,255,.08); }
 .wc.close:hover { background: #e81123; color: #fff; }
-.wc.style { font-size: 13px; color: #86efac; }
 .titlebar.chrome-win .traffic { display: none; }
 .titlebar.chrome-mac .win-caption { display: none !important; }
 .titlebar.chrome-win .win-caption { display: flex !important; }

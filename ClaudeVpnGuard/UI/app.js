@@ -183,7 +183,7 @@
       killMode: $("#killMode")?.checked ?? false,
       startWithWindows: $("#autostart")?.checked ?? false,
       uiLanguage: $("#langWrap")?.dataset.value || "ru",
-      windowChromeStyle: document.documentElement.dataset.chrome || "mac",
+      windowChromeStyle: $("#chromeWrap")?.dataset.value || document.documentElement.dataset.chrome || "mac",
       soundEnabled: $("#soundEnabled")?.checked ?? true,
       providers: $$("#providers [data-prov]").map(el => ({
         id: el.dataset.prov,
@@ -198,10 +198,13 @@
     const bar = $("#titlebar");
     bar?.classList.toggle("chrome-mac", mode === "mac");
     bar?.classList.toggle("chrome-win", mode === "win");
-    const menu = $("#chromeMenu");
-    if (menu) {
-      menu.querySelectorAll("[data-chrome]").forEach(b =>
-        b.classList.toggle("active", b.dataset.chrome === mode));
+    const wrap = $("#chromeWrap");
+    if (wrap) {
+      wrap.dataset.value = mode;
+      const btn = $("#chromeBtn");
+      if (btn) btn.textContent = mode === "win" ? "Windows" : "macOS";
+      wrap.querySelectorAll(".glass-select-menu button").forEach(b =>
+        b.classList.toggle("active", b.dataset.val === mode));
     }
   }
 
@@ -282,7 +285,6 @@
 
     $("#sysTitle").textContent = data.systemTitle || "Система активна";
     $("#sysSub").textContent = data.systemSub || "Все защиты работают";
-    $("#globalStatus").textContent = data.globalStatus || I18n.t("active");
 
     $("#protectionTitle").textContent = data.protectionTitle || "Защита включена";
     $("#protectionSub").textContent = data.protectionSub || "";
@@ -448,6 +450,10 @@
     I18n.set(val);
     autoSave();
   });
+  wireGlassSelect("#chromeWrap", val => {
+    applyChromeStyle(val);
+    autoSave();
+  });
   wireGlassSelect("#countryWrap", () => autoSave());
   wireGlassSelect("#modeWrap", val => {
     $("#strict").checked = val === "strict";
@@ -467,36 +473,12 @@
   $("#procSearch")?.addEventListener("input", renderProcesses);
 
   // window chrome
-  function toggleChromeMenu(ev) {
-    ev?.preventDefault();
-    ev?.stopPropagation();
-    const menu = $("#chromeMenu");
-    if (!menu) return;
-    const open = menu.hidden;
-    // defer so any bubbling document handlers don't instantly re-close
-    requestAnimationFrame(() => { menu.hidden = !open; });
-  }
   $("#winClose")?.addEventListener("click", closeAppAnimated);
   $("#winClose2")?.addEventListener("click", closeAppAnimated);
   $("#winMin")?.addEventListener("click", () => post("windowMinimize"));
   $("#winMin2")?.addEventListener("click", () => post("windowMinimize"));
-  $("#winStyle")?.addEventListener("click", toggleChromeMenu);
-  $("#winStyle2")?.addEventListener("click", toggleChromeMenu);
-  $("#chromeMenu")?.addEventListener("click", e => {
-    e.stopPropagation();
-    const btn = e.target.closest("[data-chrome]");
-    if (!btn) return;
-    applyChromeStyle(btn.dataset.chrome);
-    $("#chromeMenu").hidden = true;
-    autoSave();
-  });
   $("#winDrag")?.addEventListener("mousedown", e => {
     if (e.button === 0) post("windowDrag");
-  });
-  document.addEventListener("click", e => {
-    if (e.target.closest("#chromeMenu, #winStyle, #winStyle2, .traffic")) return;
-    const menu = $("#chromeMenu");
-    if (menu) menu.hidden = true;
   });
 
   // boot animation

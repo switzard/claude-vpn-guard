@@ -15,20 +15,13 @@
       <div class="traffic" id="trafficMac">
         <button type="button" class="tl close" id="winClose" title="Close" aria-label="Close"></button>
         <button type="button" class="tl min" id="winMin" title="Minimize" aria-label="Minimize"></button>
-        <button type="button" class="tl style" id="winStyle" title="Window style: Mac / Windows" aria-label="Window style"></button>
       </div>
       <div class="titlebar-drag" id="winDrag"></div>
       <div class="titlebar-right">
-        <div class="pill-active titlebar-pill"><span class="dot"></span><span class="pill-ico" data-icon="zap"></span><span id="globalStatus" data-i18n="active">Активен</span></div>
         <div class="win-caption" id="trafficWin">
-          <button type="button" class="wc style" id="winStyle2" title="Window style">⧉</button>
           <button type="button" class="wc min" id="winMin2" title="Minimize">─</button>
           <button type="button" class="wc close" id="winClose2" title="Close">×</button>
         </div>
-      </div>
-      <div class="chrome-menu" id="chromeMenu" hidden>
-        <button type="button" data-chrome="mac">macOS ●●●</button>
-        <button type="button" data-chrome="win">Windows − □ ×</button>
       </div>
     </div>
 
@@ -278,6 +271,16 @@
                       <button type="button" data-val="ru">Русский</button>
                       <button type="button" data-val="en">English</button>
                       <button type="button" data-val="zh">中文</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label data-i18n="winChrome">Кнопки окна</label>
+                  <div class="glass-select" id="chromeWrap" data-value="mac">
+                    <button type="button" class="glass-select-btn" id="chromeBtn">macOS</button>
+                    <div class="glass-select-menu" hidden>
+                      <button type="button" data-val="mac">macOS</button>
+                      <button type="button" data-val="win">Windows</button>
                     </div>
                   </div>
                 </div>
