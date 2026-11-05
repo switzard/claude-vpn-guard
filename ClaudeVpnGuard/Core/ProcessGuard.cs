@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Runtime.InteropServices;
 
@@ -17,11 +18,25 @@ public sealed class ProcessGuard : IDisposable
 {
     private readonly EventJournal _journal;
     private readonly HashSet<int> _suspended = [];
+    private readonly Dictionary<string, string> _lastPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
     private ManagementEventWatcher? _watcher;
     private bool _allowRunning = false;
+    private bool _killInsteadOfSuspend;
+    private bool _hadClaudeBeforeDrop;
 
     public event Action<int, string>? Blocked;
+    public event Action<int>? DetectedStart;
+    public event Action? Suspended;
+    public IReadOnlyDictionary<string, string> LastKnownPaths
+    {
+        get { lock (_gate) return new Dictionary<string, string>(_lastPaths); }
+    }
+    public bool HadClaudeBeforeDrop
+    {
+        get { lock (_gate) return _hadClaudeBeforeDrop; }
+        set { lock (_gate) _hadClaudeBeforeDrop = value; }
+    }
 
     public ProcessGuard(EventJournal journal)
     {
@@ -47,6 +62,8 @@ public sealed class ProcessGuard : IDisposable
 
     public void SetAllowed(bool allowed) => _allowRunning = allowed;
 
+    public void SetKillMode(bool killInsteadOfSuspend) => _killInsteadOfSuspend = killInsteadOfSuspend;
+
     public IReadOnlyList<ClaudeProcessInfo> ListClaudeProcesses()
     {
         var list = new List<ClaudeProcessInfo>();
@@ -60,13 +77,16 @@ public sealed class ProcessGuard : IDisposable
                 string? path = null;
                 try { path = p.MainModule?.FileName; } catch { /* ignore */ }
 
+                var kind = Classify(path, p.ProcessName);
                 lock (_gate)
                 {
+                    if (!string.IsNullOrWhiteSpace(path))
+                        _lastPaths[kind] = path!;
                     list.Add(new ClaudeProcessInfo
                     {
                         Id = p.Id,
                         Name = p.ProcessName,
-                        Kind = Classify(path, p.ProcessName),
+                        Kind = kind,
                         Path = path,
                         Suspended = _suspended.Contains(p.Id)
                     });
@@ -88,6 +108,7 @@ public sealed class ProcessGuard : IDisposable
     public void Enforce(bool allowRunning, bool killInsteadOfSuspend)
     {
         _allowRunning = allowRunning;
+        _killInsteadOfSuspend = killInsteadOfSuspend;
         var processes = ListClaudeProcesses();
 
         if (allowRunning)
@@ -100,6 +121,11 @@ public sealed class ProcessGuard : IDisposable
             return;
         }
 
+        if (processes.Count > 0)
+        {
+            lock (_gate) { _hadClaudeBeforeDrop = true; }
+        }
+
         foreach (var info in processes)
         {
             if (killInsteadOfSuspend)
@@ -107,6 +133,43 @@ public sealed class ProcessGuard : IDisposable
             else
                 Suspend(info.Id, info.Kind);
         }
+    }
+
+    public int RelaunchRemembered()
+    {
+        Dictionary<string, string> paths;
+        lock (_gate)
+        {
+            if (!_hadClaudeBeforeDrop || _lastPaths.Count == 0)
+                return 0;
+            paths = new Dictionary<string, string>(_lastPaths);
+            _hadClaudeBeforeDrop = false;
+        }
+
+        var launched = 0;
+        foreach (var (kind, path) in paths)
+        {
+            try
+            {
+                if (!File.Exists(path)) continue;
+                if (ListClaudeProcesses().Any(p =>
+                        string.Equals(p.Path, path, StringComparison.OrdinalIgnoreCase) && !p.Suspended))
+                    continue;
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+                _journal.Add("launch", $"Автозапуск после VPN: {kind}");
+                launched++;
+            }
+            catch (Exception ex)
+            {
+                _journal.Add("error", $"Автозапуск {kind}: {ex.Message}");
+            }
+        }
+        return launched;
     }
 
     public void SuspendAll(string reason)
@@ -128,12 +191,17 @@ public sealed class ProcessGuard : IDisposable
             var pid = Convert.ToInt32(e.NewEvent.Properties["ProcessID"].Value);
             var name = e.NewEvent.Properties["ProcessName"].Value?.ToString() ?? "claude.exe";
             _journal.Add("launch", $"Detected start: {name} PID {pid}");
+            DetectedStart?.Invoke(pid);
 
             if (_allowRunning)
                 return;
 
             Thread.Sleep(120);
-            Suspend(pid, "VPN/локация не готовы");
+            var reason = "VPN/локация не готовы";
+            if (_killInsteadOfSuspend)
+                Kill(pid, reason);
+            else
+                Suspend(pid, reason);
             Blocked?.Invoke(pid, "VPN не активен или локация неверна");
         }
         catch (Exception ex)
@@ -154,7 +222,9 @@ public sealed class ProcessGuard : IDisposable
                 false, pid);
             if (handle == IntPtr.Zero)
             {
-                _journal.Add("error", $"OpenProcess failed for PID {pid} (try running Guard as same user)");
+                // Soft-fail is a killswitch hole — escalate to Kill when possible.
+                _journal.Add("error", $"OpenProcess failed for PID {pid} — escalating to terminate");
+                Kill(pid, $"{reason} (OpenProcess denied)");
                 return;
             }
 
@@ -165,10 +235,12 @@ public sealed class ProcessGuard : IDisposable
                 {
                     _suspended.Add(pid);
                     _journal.Add("suspend", $"Suspended PID {pid} — {reason}");
+                    Suspended?.Invoke();
                 }
                 else
                 {
-                    _journal.Add("error", $"NtSuspendProcess status 0x{status:X} for PID {pid}");
+                    _journal.Add("error", $"NtSuspendProcess status 0x{status:X} for PID {pid} — escalating");
+                    Kill(pid, $"{reason} (suspend 0x{status:X})");
                 }
             }
             finally

@@ -10,18 +10,28 @@ public sealed class WireGuardProvider : ITunnelProvider
         var hasApp = snapshot.HasProcessContains("wireguard");
         var adapter = ProviderHelpers.FindUpAdapter(snapshot, "WireGuard", "wg-");
 
-        // Don't steal AmneziaWG adapters if Amnezia is clearly active
         if (adapter is not null &&
             adapter.Name.Contains("Amnezia", StringComparison.OrdinalIgnoreCase))
         {
             return new TunnelProbeResult(false, "AmneziaWG adapter owned by Amnezia provider");
         }
 
-        if (adapter is not null)
+        // Require WireGuard process/service host — adapter alone is not enough (stale NIC false Up).
+        if (hasApp && adapter is not null &&
+            (adapter.Name.Contains("WireGuard", StringComparison.OrdinalIgnoreCase) ||
+             adapter.Name.Contains("wg-", StringComparison.OrdinalIgnoreCase) ||
+             adapter.Description.Contains("WireGuard", StringComparison.OrdinalIgnoreCase)))
+        {
             return new TunnelProbeResult(true, $"adapter {adapter.Name}", adapter.Name);
+        }
+
+        if (adapter is not null &&
+            (adapter.Name.Contains("WireGuard", StringComparison.OrdinalIgnoreCase) ||
+             adapter.Description.Contains("WireGuard", StringComparison.OrdinalIgnoreCase)))
+            return new TunnelProbeResult(false, "WireGuard adapter without wireguard process", Degraded: true);
 
         if (hasApp)
-            return new TunnelProbeResult(false, "WireGuard app open but no Up tunnel adapter");
+            return new TunnelProbeResult(false, "WireGuard app open but no Up tunnel adapter", Degraded: true);
 
         return new TunnelProbeResult(false, "WireGuard tunnel not detected");
     }

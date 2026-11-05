@@ -11,14 +11,15 @@ public sealed class HappProvider : ITunnelProvider
         var hasClient = snapshot.HasProcess("Happ", "happd");
         var hasCore = snapshot.HasProcess("xray", "happd");
 
+        // Connected only when TUN adapter is Up AND client/core is alive.
         if (adapter is not null && (hasClient || hasCore))
             return new TunnelProbeResult(true, $"adapter {adapter.Name} + core", adapter.Name);
 
         if (adapter is not null)
-            return new TunnelProbeResult(true, $"adapter {adapter.Name}", adapter.Name);
+            return new TunnelProbeResult(false, $"adapter {adapter.Name} without Happ/xray — not connected", adapter.Name, Degraded: true);
 
-        if (hasClient && hasCore)
-            return new TunnelProbeResult(true, "Happ process + xray/happd");
+        if (hasClient || hasCore)
+            return new TunnelProbeResult(false, "Happ installed/running but tunnel adapter down", Degraded: true);
 
         return new TunnelProbeResult(false, "Happ tunnel not detected");
     }

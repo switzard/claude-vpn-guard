@@ -9,10 +9,13 @@ public sealed class NekorayProvider : ITunnelProvider
     {
         var hasApp = snapshot.HasProcessContains("nekoray", "nekobox", "NekoRay", "NekoBox");
         var hasCore = snapshot.HasProcess("sing-box", "singbox", "nekobox_core");
-        var adapter = ProviderHelpers.FindUpAdapter(snapshot, "nekoray", "nekobox", "sing-box", "wintun");
+        var adapter = ProviderHelpers.FindUpAdapter(snapshot, "nekoray", "nekobox", "sing-box");
 
-        if (hasApp && (hasCore || adapter is not null))
-            return new TunnelProbeResult(true, adapter is null ? "Nekoray + core" : $"Nekoray + {adapter.Name}", adapter?.Name);
+        if (hasApp && adapter is not null)
+            return new TunnelProbeResult(true, $"Nekoray + {adapter.Name}", adapter.Name);
+
+        if (hasApp || hasCore)
+            return new TunnelProbeResult(false, "Nekoray open but no TUN — not connected", Degraded: true);
 
         return new TunnelProbeResult(false, "Nekoray tunnel not detected");
     }

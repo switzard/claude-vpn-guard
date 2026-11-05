@@ -10,11 +10,11 @@ public sealed class WindscribeProvider : ITunnelProvider
         var hasApp = snapshot.HasProcessContains("Windscribe");
         var adapter = ProviderHelpers.FindUpAdapter(snapshot, "Windscribe", "WindscribeWind");
 
-        if (adapter is not null)
+        if (hasApp && adapter is not null)
             return new TunnelProbeResult(true, $"adapter {adapter.Name}", adapter.Name);
 
-        if (hasApp && snapshot.HasProcessContains("WindscribeService", "WindscribeEngine"))
-            return new TunnelProbeResult(true, "Windscribe service processes");
+        if (hasApp)
+            return new TunnelProbeResult(false, "Windscribe open but no tunnel adapter", Degraded: true);
 
         return new TunnelProbeResult(false, "Windscribe tunnel not detected");
     }

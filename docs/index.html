@@ -3,118 +3,136 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Claude VPN Guard</title>
-  <meta name="description" content="Windows VPN killswitch and location lock for Claude Code and Claude Desktop." />
+  <title>Claude VPN Guard v2</title>
+  <meta name="description" content="Windows VPN killswitch for Claude Code & Desktop — Session Passport, Incident Freeze Pack, Guard HUD." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0e1114;
-      --panel: #161b20;
-      --text: #e8eef2;
-      --muted: #8b9aa5;
-      --teal: #2ec4b6;
-      --coral: #ff5a5f;
-      --line: rgba(255,255,255,.08);
+      --bg: #0e1114; --panel: #161b20; --text: #e8eef2; --muted: #8b9aa5;
+      --teal: #2ec4b6; --coral: #ff5a5f; --yellow: #ffc857; --line: rgba(255,255,255,.08);
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      margin: 0; font-family: "IBM Plex Sans", system-ui, sans-serif; color: var(--text);
       background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(46,196,182,.18), transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, rgba(255,90,95,.12), transparent 50%),
-        linear-gradient(180deg, #12171c, var(--bg) 40%);
-      color: var(--text);
+        radial-gradient(1100px 520px at 8% -8%, rgba(46,196,182,.16), transparent 55%),
+        radial-gradient(800px 420px at 100% 0%, rgba(255,90,95,.1), transparent 48%),
+        linear-gradient(180deg, #12171c, var(--bg) 42%);
       min-height: 100vh;
     }
-    .wrap { width: min(980px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 80px; }
-    .brand {
-      font-family: "Space Grotesk", sans-serif;
-      font-size: clamp(2.4rem, 6vw, 4rem);
-      letter-spacing: -.03em;
-      margin: 0 0 12px;
-      line-height: 1.05;
+    .wrap { width: min(960px, calc(100% - 40px)); margin: 0 auto; padding: 56px 0 72px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-radius: 999px; margin-bottom: 20px;
+      background: rgba(46,196,182,.12); color: var(--teal); font-size: .85rem; font-weight: 600;
     }
-    .lead { color: var(--muted); font-size: 1.15rem; max-width: 38rem; line-height: 1.55; margin: 0 0 28px; }
-    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+    h1 {
+      font-family: "Space Grotesk", sans-serif; font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+      letter-spacing: -.03em; line-height: 1.05; margin: 0 0 14px;
+    }
+    .lead { color: var(--muted); font-size: 1.12rem; max-width: 38rem; line-height: 1.55; margin: 0 0 26px; }
+    .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 44px; }
     a.btn {
       display: inline-flex; align-items: center; justify-content: center;
       padding: 12px 18px; border-radius: 12px; text-decoration: none; font-weight: 600;
     }
     .btn-primary { background: var(--teal); color: #0e1114; }
     .btn-ghost { background: var(--panel); color: var(--text); border: 1px solid var(--line); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    h2 { font-family: "Space Grotesk", sans-serif; font-size: 1.35rem; margin: 0 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
     .card {
       background: color-mix(in srgb, var(--panel) 92%, black);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
+      border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px;
     }
-    .card h3 { margin: 0 0 8px; font-family: "Space Grotesk", sans-serif; font-size: 1.1rem; }
-    .card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: .95rem; }
-    .status {
-      display: inline-flex; gap: 10px; align-items: center;
-      padding: 8px 12px; border-radius: 999px; background: rgba(46,196,182,.12);
-      color: var(--teal); font-size: .85rem; font-weight: 600; margin-bottom: 22px;
+    .card h3 { margin: 0 0 8px; font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: .94rem; }
+    .kicker { color: var(--teal); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+    .section { margin-top: 40px; }
+    .list { margin: 0; padding-left: 1.15rem; color: var(--muted); line-height: 1.55; }
+    .list li { margin: 6px 0; }
+    footer {
+      margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: .85rem; line-height: 1.5;
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); }
-    .clients { margin-top: 36px; }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; color: var(--muted); font-size: .85rem; }
-    footer { margin-top: 48px; color: var(--muted); font-size: .85rem; line-height: 1.5; border-top: 1px solid var(--line); padding-top: 20px; }
     code { color: var(--teal); }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <div class="status"><span class="dot"></span> Killswitch · Location lock · Tray monitor</div>
-    <h1 class="brand">Claude VPN Guard</h1>
+    <div class="pill"><span class="dot"></span> v2.2.0 · Killswitch · Passport · Incidents · HUD</div>
+    <h1>Claude VPN Guard</h1>
     <p class="lead">
-      Keep Claude Code and Claude Desktop suspended when the tunnel dies.
-      Pin one exit country. Get reminded before a bad location leaks into a session.
+      Keep Claude Code and Claude Desktop offline when the tunnel is actually down —
+      pin an exit country, watch session continuity, and freeze incidents mid-flight.
     </p>
     <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/switzard/claude-vpn-guard/releases">Download .exe</a>
-      <a class="btn btn-ghost" href="https://github.com/switzard/claude-vpn-guard">View source</a>
+      <a class="btn btn-primary" href="https://github.com/switzard/claude-vpn-guard/releases/tag/v2.2.0">Download v2</a>
+      <a class="btn btn-ghost" href="https://github.com/switzard/claude-vpn-guard">GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/switzard/claude-vpn-guard/blob/main/CHANGELOG.md">Changelog</a>
     </div>
 
-    <section class="grid">
-      <article class="card">
-        <h3>Tunnel drop → suspend</h3>
-        <p>When Happ or another supported client drops, Guard freezes Claude processes in about a second.</p>
-      </article>
-      <article class="card">
-        <h3>Location reminders</h3>
-        <p>Set NL, DE, US… Strict mode blocks Claude until the public exit country matches.</p>
-      </article>
-      <article class="card">
-        <h3>Multi-client support</h3>
-        <p>Works with the popular Windows proxy/VPN stack used with modern nodes — not one vendor lock-in.</p>
-      </article>
-    </section>
-
-    <section class="clients">
-      <h2 style="font-family:'Space Grotesk',sans-serif;margin:0 0 4px;">Supported clients</h2>
-      <p style="color:var(--muted);margin:0;">Enable only what you use in Settings.</p>
-      <div class="chips">
-        <span class="chip">Happ</span>
-        <span class="chip">Hiddify</span>
-        <span class="chip">v2rayN</span>
-        <span class="chip">Clash Verge Rev</span>
-        <span class="chip">Amnezia</span>
-        <span class="chip">WireGuard</span>
-        <span class="chip">Windscribe</span>
-        <span class="chip">Outline</span>
-        <span class="chip">Nekoray</span>
+    <section>
+      <h2>What each piece does</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="kicker">Core</div>
+          <h3>Tunnel killswitch</h3>
+          <p>Detects live TUN/adapters across Happ, Hiddify, v2rayN, Clash, Amnezia, WireGuard and more. Claude is suspended or killed while the tunnel is Down or Idle.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Core</div>
+          <h3>Exit location lock</h3>
+          <p>Multi-source geo consensus. Strict mode blocks Claude on the wrong country and shows a clear recovery banner — not a vague “turn on VPN” when the tunnel is already Up.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">v2 · Big3</div>
+          <h3>Session Passport</h3>
+          <p>Continuity fingerprint of your exit identity: Stable, Shifted, or Broken. Reanchor when you intentionally change nodes.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">v2 · Big3</div>
+          <h3>Incident Freeze Pack</h3>
+          <p>When VPN drops or geo breaks mid-session, Guard freezes a forensic pack. Open incidents live under Incidents — acknowledge when resolved.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">v2 · Big3</div>
+          <h3>Guard HUD</h3>
+          <p>Always-on-top strip for passport, VPN, and Claude. Close with × to hide — it does not disable the feature. Tray and Settings stay in sync.</p>
+        </article>
+        <article class="card">
+          <div class="kicker">Extras</div>
+          <h3>Toasts · Custom TUN · Profiles</h3>
+          <p>Windows Action Center notifications, sound presets, Custom TUN for long-tail clients, and named killswitch profiles.</p>
+        </article>
       </div>
     </section>
 
+    <section class="section">
+      <h2>Quick start</h2>
+      <ol class="list">
+        <li>Download the <code>win-x64</code> zip from Releases and run <code>ClaudeVpnGuard.exe</code>.</li>
+        <li>Set your target country and enable Strict location.</li>
+        <li>Connect a supported VPN client until exit geo matches.</li>
+        <li>Open Claude Code or Claude Desktop — Guard watches the rest.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>v2 highlight changes</h2>
+      <ul class="list">
+        <li>Session Passport + Incident Freeze Pack + Guard HUD</li>
+        <li>Stricter false-Up tunnel probes; temporary allow with revoke</li>
+        <li>UI cleanup: centered controls, no zero incident badge, denser HUD</li>
+        <li>ru / en / zh host copy for status and recovery</li>
+      </ul>
+    </section>
+
     <footer>
-      Network hygiene only. No KYC / payment / multi-account bypass features.
-      Audit: <code>AUDIT.md</code> · Research caveats: <code>RESEARCH.md</code>.
-      MIT © switzard
+      Local process hygiene only — not a KYC / multi-account / Usage Policy bypass tool.
+      MIT · <a href="https://github.com/switzard/claude-vpn-guard" style="color:var(--teal)">switzard/claude-vpn-guard</a>
     </footer>
   </main>
 </body>

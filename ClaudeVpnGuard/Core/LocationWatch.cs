@@ -15,6 +15,10 @@ public sealed class GeoResult
     public string? CountryName { get; init; }
     public string? Error { get; init; }
     public string? Source { get; init; }
+    /// <summary>How many geo providers agreed on the winning country.</summary>
+    public int AgreementCount { get; init; }
+    /// <summary>Total geo providers that returned a country sample.</summary>
+    public int SampleCount { get; init; }
 }
 
 public sealed class LocationWatch : IDisposable
@@ -108,7 +112,7 @@ public sealed class LocationWatch : IDisposable
 
         _http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
         _http.DefaultRequestHeaders.TryAddWithoutValidation(
-            "User-Agent", "ClaudeVpnGuard/1.1 (+https://github.com/switzard/claude-vpn-guard)");
+            "User-Agent", "ClaudeVpnGuard/2.0 (+https://github.com/switzard/claude-vpn-guard)");
         _http.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, text/plain, */*");
     }
 
@@ -122,7 +126,9 @@ public sealed class LocationWatch : IDisposable
             await Task.WhenAll(
                 TryCloudflareAsync(samples, ct),
                 TryIpWhoAsync(samples, ct),
-                TryIpApiAsync(samples, ct));
+                TryIpApiAsync(samples, ct),
+                TryTwoIpAsync(samples, ct),
+                TryIpInfoIoAsync(samples, ct));
 
             if (samples.IsEmpty)
             {
@@ -133,7 +139,7 @@ public sealed class LocationWatch : IDisposable
             }
 
             var ip = PickIp(samples.Values);
-            var (code, name, source) = PickCountry(samples.Values);
+            var (code, name, source, agree, sampleCount) = PickCountry(samples.Values);
 
             if (string.IsNullOrWhiteSpace(code))
             {
@@ -142,7 +148,9 @@ public sealed class LocationWatch : IDisposable
                     Ok = false,
                     Ip = ip,
                     Error = "geo providers returned no country",
-                    Source = source
+                    Source = source,
+                    AgreementCount = agree,
+                    SampleCount = sampleCount
                 };
                 return LastResult;
             }
@@ -155,7 +163,9 @@ public sealed class LocationWatch : IDisposable
                 Ip = ip,
                 CountryCode = code.ToUpperInvariant(),
                 CountryName = name,
-                Source = source
+                Source = source,
+                AgreementCount = agree,
+                SampleCount = sampleCount
             };
 
             _lastCountry = LastResult.CountryCode;
@@ -227,9 +237,9 @@ public sealed class LocationWatch : IDisposable
     {
         try
         {
-            // HTTP endpoint is fine for a public IP self-check; fields keep payload tiny.
+            // Prefer HTTPS; free tier may refuse — failure is OK (other providers remain).
             using var response = await _http.GetAsync(
-                "http://ip-api.com/json/?fields=status,country,countryCode,query", ct);
+                "https://ip-api.com/json/?fields=status,country,countryCode,query", ct);
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
@@ -244,6 +254,73 @@ public sealed class LocationWatch : IDisposable
             if (string.IsNullOrWhiteSpace(code)) return;
 
             bag["ip-api"] = ("ip-api.com", ip, code.ToUpperInvariant(), name);
+        }
+        catch
+        {
+            /* provider optional */
+        }
+    }
+
+    private async Task TryTwoIpAsync(
+        ConcurrentDictionary<string, (string Source, string? Ip, string? Code, string? Name)> bag,
+        CancellationToken ct)
+    {
+        try
+        {
+            // 2ip.ru JSON — owner reference for correct geo display.
+            using var response = await _http.GetAsync("https://api.2ip.ua/geo.json", ct);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+            var root = doc.RootElement;
+            var code = root.TryGetProperty("country_code", out var cc) ? cc.GetString()
+                : root.TryGetProperty("countryCode", out var cc2) ? cc2.GetString() : null;
+            var name = root.TryGetProperty("country", out var cn) ? cn.GetString()
+                : root.TryGetProperty("country_name", out var cn2) ? cn2.GetString() : null;
+            var ip = root.TryGetProperty("ip", out var ipEl) ? ipEl.GetString() : null;
+            if (string.IsNullOrWhiteSpace(code) && string.IsNullOrWhiteSpace(ip))
+                return;
+            if (string.IsNullOrWhiteSpace(code)) return;
+            bag["2ip"] = ("2ip.ua", ip, code.ToUpperInvariant(), name);
+        }
+        catch
+        {
+            try
+            {
+                using var response = await _http.GetAsync("https://api.2ip.ru/geo.json", ct);
+                response.EnsureSuccessStatusCode();
+                await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+                var root = doc.RootElement;
+                var code = root.TryGetProperty("country_code", out var cc) ? cc.GetString() : null;
+                var name = root.TryGetProperty("country", out var cn) ? cn.GetString() : null;
+                var ip = root.TryGetProperty("ip", out var ipEl) ? ipEl.GetString() : null;
+                if (string.IsNullOrWhiteSpace(code)) return;
+                bag["2ip"] = ("2ip.ru", ip, code.ToUpperInvariant(), name);
+            }
+            catch
+            {
+                /* provider optional */
+            }
+        }
+    }
+
+    private async Task TryIpInfoIoAsync(
+        ConcurrentDictionary<string, (string Source, string? Ip, string? Code, string? Name)> bag,
+        CancellationToken ct)
+    {
+        try
+        {
+            using var response = await _http.GetAsync("https://ipinfo.io/json", ct);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync(ct);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+            var root = doc.RootElement;
+            var code = root.TryGetProperty("country", out var cc) ? cc.GetString() : null;
+            var ip = root.TryGetProperty("ip", out var ipEl) ? ipEl.GetString() : null;
+            if (string.IsNullOrWhiteSpace(code)) return;
+            var upper = code.ToUpperInvariant();
+            bag["ipinfo"] = ("ipinfo.io", ip, upper, CountryNames.GetValueOrDefault(upper));
         }
         catch
         {
@@ -276,32 +353,38 @@ public sealed class LocationWatch : IDisposable
             .First();
     }
 
-    private static (string? Code, string? Name, string? Source) PickCountry(
+    private static (string? Code, string? Name, string? Source, int Agree, int Samples) PickCountry(
         IEnumerable<(string Source, string? Ip, string? Code, string? Name)> samples)
     {
         var list = samples.Where(s => !string.IsNullOrWhiteSpace(s.Code)).ToList();
-        if (list.Count == 0) return (null, null, null);
+        if (list.Count == 0) return (null, null, null, 0, 0);
 
-        // Majority vote on ISO country code. On a tie, prefer Cloudflare (CDN view),
-        // then ipwho.is, then ip-api — datacenter VPN ranges are often wrong in one DB.
+        // Majority vote on ISO country code. On a tie, prefer Cloudflare (CDN view).
         var winner = list
             .GroupBy(s => s.Code!, StringComparer.OrdinalIgnoreCase)
             .OrderByDescending(g => g.Count())
             .ThenBy(g => g.Min(x => Preference(x.Source)))
             .First();
 
+        // Require ≥2 agreeing samples when we have ≥2 successful geo replies.
+        if (list.Count >= 2 && winner.Count() < 2)
+            return (null, null, null, winner.Count(), list.Count);
+
         var best = winner.OrderBy(x => Preference(x.Source)).First();
         var sources = string.Join("+", winner.Select(x => x.Source).Distinct());
         var name = winner.Select(x => x.Name).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n))
                    ?? CountryNames.GetValueOrDefault(best.Code!);
-        return (best.Code, name, sources);
+        return (best.Code, name, sources, winner.Count(), list.Count);
     }
 
     private static int Preference(string? source) => source switch
     {
         "cloudflare" => 0,
         "ipwho.is" => 1,
-        "ip-api.com" => 2,
+        "ipinfo.io" => 2,
+        "2ip.ua" => 3,
+        "2ip.ru" => 3,
+        "ip-api.com" => 4,
         _ => 9
     };
 
@@ -319,7 +402,9 @@ public sealed class LocationWatch : IDisposable
         if (!due) return false;
 
         if (!vpnUp) return true;
-        if (!MatchesTarget(settings)) return true;
+        // Wrong-exit nags only in strict mode (soft mode tolerates other countries).
+        if (settings.StrictLocation && LastResult is { Ok: true } && !MatchesTarget(settings))
+            return true;
         return false;
     }
 

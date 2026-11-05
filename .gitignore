@@ -9,3 +9,26 @@ AppData/
 **/events.jsonl
 *.log
 .DS_Store
+
+# Local / private noise
+.tmp-unslop/
+*.lnk
+tools/
+
+# Design scrapings & crop leftovers (may embed third-party tokens)
+ClaudeVpnGuard/UI/refs/
+ClaudeVpnGuard/UI/crop-*.jpg
+ClaudeVpnGuard/UI/ref-*.png
+ClaudeVpnGuard/UI/ref-*.jpg
+
+# Build output — attach zips to GitHub Releases, don't track
+dist/
+**/ClaudeVpnGuard.exe.WebView2/
+
+# Internal audit scratch (not product docs)
+docs/V2_*.md
+docs/AGENT_TOKEN_THRIFT.md
+docs/DESIGN_GATE.md
+docs/icon-preview.html
+docs/ui-preview.webp
+docs/v2-redesign-mock.*

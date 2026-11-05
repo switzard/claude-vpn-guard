@@ -29,6 +29,12 @@ public static class SettingsStore
                 if (!settings.EnabledProviders.ContainsKey(key))
                     settings.EnabledProviders[key] = value;
             }
+            settings.ProviderPriority ??= AppSettings.CreateDefaultPriority();
+            foreach (var id in AppSettings.CreateDefaultPriority())
+            {
+                if (!settings.ProviderPriority.Contains(id, StringComparer.OrdinalIgnoreCase))
+                    settings.ProviderPriority.Add(id);
+            }
             return settings;
         }
         catch

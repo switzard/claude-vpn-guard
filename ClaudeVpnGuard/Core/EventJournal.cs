@@ -53,6 +53,23 @@ public sealed class EventJournal
         }
     }
 
+    public void ClearAll()
+    {
+        lock (_gate)
+        {
+            _entries.Clear();
+            try
+            {
+                if (System.IO.File.Exists(_logPath))
+                    System.IO.File.WriteAllText(_logPath, "");
+            }
+            catch
+            {
+                // keep memory clear even if disk truncate fails
+            }
+        }
+    }
+
     private void LoadTail()
     {
         try
